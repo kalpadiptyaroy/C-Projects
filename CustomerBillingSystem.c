@@ -4,7 +4,7 @@
 #include<stdlib.h>
 #define RECORD "CustomerRecord.dat"
 
-typedef struct {int customerNo;	 long long int phoneNo;  float billAmount; 	float balance;  char name[20];  char address[30];} Customer;
+typedef struct {int customerNo;	 long long int phoneNo;	float balance;  char name[20];  char address[32];} Customer;
 
 void input(Customer *x)
 {
@@ -16,7 +16,8 @@ void input(Customer *x)
 	printf("\tEnter the Phone No. : ");
 	scanf("%lld", &(x->phoneNo));
 	printf("\tEnter the Amount to be Paid : ");
-	scanf("%f", &x->billAmount);
+	scanf("%f", &x->balance);
+	x->balance = -x->balance;
 }
 
 Customer setCustomerNo()
@@ -30,8 +31,7 @@ Customer setCustomerNo()
 		fread(&x, sizeof(Customer), 1, fp);
 		x.customerNo = k++;
 		fseek(fp, -sizeof(Customer), SEEK_CUR);
-		fwrite(&x, sizeof(Customer), 1, fp);
-		//fseek(fp, sizeof(Customer), SEEK_CUR);		
+		fwrite(&x, sizeof(Customer), 1, fp);		
 	}
 	while(feof(fp) != 0);
 	fclose(fp);
@@ -44,19 +44,20 @@ void update(Customer x)
 	
 	fp = fopen(RECORD, "r+");
 	
-	while(feof(fp) !=  0)
+	do
 	{
 		fread(&y, sizeof(Customer), 1, fp);
 		if(y.customerNo == x.customerNo)
 			fseek(fp, -sizeof(Customer), SEEK_CUR);
 		fwrite(&x, sizeof(Customer), 1, fp);
 	}
+	while(feof(fp) !=  0);
 	fclose(fp);
 }
 
 void writefile(Customer x)
 {
-	FILE *fp;
+	FILE *fp; 
 	fp = fopen("CustomerRecord.dat", "ab");
 	fwrite(&x, sizeof(Customer), 1, fp);
 	fclose(fp);
@@ -67,7 +68,7 @@ Customer searchByName(char *name)
 	FILE *fp;
 	fp = fopen(RECORD, "rb");
 	Customer x;
-	while(feof(fp))
+	do
 	{
 		fread(&x, sizeof(Customer), 1, fp);
 		if(strcmp(x.name, name) == 0)
@@ -77,6 +78,7 @@ Customer searchByName(char *name)
 			return x;
 		}
 	}
+	while(feof(fp) != 0);
 	printf("\n\tRecord not Found \n");
 	x.customerNo = -1;
 	fclose(fp);
@@ -89,7 +91,7 @@ Customer searchByNo(int n)
 	FILE *fp;
 	fp = fopen(RECORD, "rb");
 	Customer x;
-	while(feof(fp))
+	do
 	{
 		fread(&x, sizeof(Customer), 1, fp);
 		if(x.customerNo == n)
@@ -99,6 +101,7 @@ Customer searchByNo(int n)
 			return x;
 		}
 	}
+	while(feof(fp) != 0);
 	printf("\tRecord not Found");
 	x.customerNo = -1;
 	fclose(fp);
@@ -115,7 +118,7 @@ Customer search(Customer x)
 	if(choice == 1)
 	{	
 		printf("\tEnter the Name : ");
-		scanf("%s", x.name);
+		fflush(stdin);	gets(x.name);
 		x = searchByName(x.name);
 	}
 	else if(choice == 2)
@@ -133,9 +136,9 @@ Customer search(Customer x)
 	return x;
 }
 
-void payBill(Customer *x)
+float payBill(Customer *x)
 {
-	char c; float amt; fflush(stdin);
+	char c; float amt = 0.0;  fflush(stdin);
 	printf("\tDo you want to pay the bill? (Y/N) : ");
 	scanf("%c", &c);
 	
@@ -144,22 +147,25 @@ void payBill(Customer *x)
 		printf("\tEnter Amount Paid : ");
 		scanf("%f", &amt);
 		
-		x->balance = amt - x->billAmount - x->balance;
+		x->balance = amt + x->balance;
 	}
 	else
 		x->balance = x->balance - amt;
+		
+	return amt;
 }
 
-void output(Customer x)
+void output(Customer x, float amt)
 {
 	printf("\n\tCustomer Name : %s\t", x.name);
 	printf("\n\tCustomer No. : %d\t", x.customerNo);
 	printf("\n\tCustomer Phone No. : %lld\t", x.phoneNo);
 	printf("\n\tCustomer Address : %s\t", x.address);
-	printf("\n\tBill Amount : %f\t", x.billAmount);
-	printf("\n\tAmount Paid : %f\t", x.billAmount + x.balance);
+	printf("\n\tBill Amount : %f\t", amt - x.balance);
+	printf("\n\tAmount Paid : %f\t",amt);
 	printf("\n\tRemaining Balance: %f\t", x.balance);
 }
+
 void displayMenu()
 {
 	system("cls");				//clrscr() is deprecated. So we are using cls command with the system() function to clear screen initially.
@@ -168,9 +174,10 @@ void displayMenu()
 	printf("\n\t\tEnter 2 to Search Account");
 	printf("\n\t\tEnter 3 to Exit");
 }
+
 int main()
 {
-	int choice;	Customer x;
+	int choice;	Customer x; float amt;
 	displayMenu();
 	x.balance = 0;
 	x.phoneNo = 0;
@@ -180,18 +187,18 @@ int main()
 	switch(choice)
 	{
 		case 1:	input(&x);
-				payBill(&x);
+				amt = payBill(&x);
 				writefile(x);
 				x = setCustomerNo();
-				output(x);
+				output(x, amt);
 				break;
 				
 		case 2: x = search(x);
 				if(x.customerNo != -1)
 				{
-					payBill(&x);
+					amt = payBill(&x);
 					update(x);
-					output(x);
+					output(x, amt);
 				}
 				break;
 				

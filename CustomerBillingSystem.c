@@ -4,7 +4,14 @@
 #include<stdlib.h>
 #define RECORD "CustomerRecord.dat"
 
-typedef struct {int customerNo;	 long long int phoneNo;	float balance;  char name[20];  char address[32];} Customer;
+typedef struct
+{
+	int customerNo;
+	long long int phoneNo;
+	char name[20];
+	char address[32];
+	float balance;
+} Customer;
 
 void input(Customer *x)
 {
@@ -14,7 +21,7 @@ void input(Customer *x)
 	printf("\tEnter the Address : ");
 	gets(x->address); fflush(stdin);
 	printf("\tEnter the Phone No. : ");
-	scanf("%lld", &(x->phoneNo));
+	scanf("%lld", &x->phoneNo);
 	printf("\tEnter the Amount to be Paid : ");
 	scanf("%f", &x->balance);
 	x->balance = -x->balance;
@@ -22,42 +29,57 @@ void input(Customer *x)
 
 Customer setCustomerNo()
 {
-	FILE *fp;	Customer x;	int k = 1;
+	FILE *fp;
+	Customer x;
+	int k, totalRecords;
+	fp = fopen(RECORD, "rb+");
+	fseek(fp, 0, SEEK_END);
+	totalRecords = ftell(fp) / sizeof(Customer);	
 	
-	fp = fopen(RECORD, "r+"); 
-	
-	do
+	if(totalRecords == 1)
 	{
+		rewind(fp);
 		fread(&x, sizeof(Customer), 1, fp);
-		x.customerNo = k++;
-		fseek(fp, -sizeof(Customer), SEEK_CUR);
-		fwrite(&x, sizeof(Customer), 1, fp);		
+		x.customerNo = 1;
+		fseek(fp, -sizeof(Customer), SEEK_END);
+		fwrite(&x, sizeof(Customer), 1 , fp);
 	}
-	while(feof(fp) != 0);
+	else
+	{
+		fseek(fp, -2 * sizeof(Customer), SEEK_END);
+		fread(&x, sizeof(Customer), 1, fp);
+		k = x.customerNo + 1;
+		fread(&x, sizeof(Customer), 1, fp);
+		x.customerNo = k;
+		fseek(fp, -sizeof(Customer), SEEK_END);
+		fwrite(&x, sizeof(Customer), 1, fp);
+	}
+	
 	fclose(fp);
-	return x;
+	return x;	
 }
 
 void update(Customer x)
 {
 	FILE *fp;	Customer y;
 	
-	fp = fopen(RECORD, "r+");
+	fp = fopen(RECORD, "rb+");
 	
-	do
+	while(fread(&x, sizeof(Customer), 1, fp))
 	{
-		fread(&y, sizeof(Customer), 1, fp);
 		if(y.customerNo == x.customerNo)
+		{	
 			fseek(fp, -sizeof(Customer), SEEK_CUR);
-		fwrite(&x, sizeof(Customer), 1, fp);
+			fwrite(&x, sizeof(Customer), 1, fp);
+			break;
+		}
 	}
-	while(feof(fp) !=  0);
 	fclose(fp);
 }
 
 void writefile(Customer x)
 {
-	FILE *fp; 
+	FILE *fp;
 	fp = fopen("CustomerRecord.dat", "ab");
 	fwrite(&x, sizeof(Customer), 1, fp);
 	fclose(fp);
@@ -68,9 +90,8 @@ Customer searchByName(char *name)
 	FILE *fp;
 	fp = fopen(RECORD, "rb");
 	Customer x;
-	do
+	while(fread(&x, sizeof(Customer), 1, fp))
 	{
-		fread(&x, sizeof(Customer), 1, fp);
 		if(strcmp(x.name, name) == 0)
 		{
 			printf("\n\tCustomer Record Found \n");
@@ -78,7 +99,6 @@ Customer searchByName(char *name)
 			return x;
 		}
 	}
-	while(feof(fp) != 0);
 	printf("\n\tRecord not Found \n");
 	x.customerNo = -1;
 	fclose(fp);
@@ -91,17 +111,15 @@ Customer searchByNo(int n)
 	FILE *fp;
 	fp = fopen(RECORD, "rb");
 	Customer x;
-	do
+	while(fread(&x, sizeof(Customer), 1, fp))
 	{
-		fread(&x, sizeof(Customer), 1, fp);
 		if(x.customerNo == n)
 		{
 			printf("\n\t Customer Record Found \n");
 			fclose(fp);
 			return x;
 		}
-	}
-	while(feof(fp) != 0);
+	}	
 	printf("\tRecord not Found");
 	x.customerNo = -1;
 	fclose(fp);
@@ -175,12 +193,12 @@ void displayMenu()
 	printf("\n\t\tEnter 3 to Exit");
 }
 
-int main()
+void run()
 {
 	int choice;	Customer x; float amt;
-	displayMenu();
-	x.balance = 0;
-	x.phoneNo = 0;
+	
+	x.balance = 0;	x.phoneNo = 0;
+	
 	printf("\n\n \t\t\tEnter your Choice : ");
 	scanf("%d", &choice);
 	
@@ -189,8 +207,9 @@ int main()
 		case 1:	input(&x);
 				amt = payBill(&x);
 				writefile(x);
-				x = setCustomerNo();
+				x = setCustomerNo(); 
 				output(x, amt);
+				run();
 				break;
 				
 		case 2: x = search(x);
@@ -200,12 +219,20 @@ int main()
 					update(x);
 					output(x, amt);
 				}
+				run();
 				break;
 				
 		case 3: break;
 		
-		default: printf("WRONG CHOICE !");	main();
+		default: printf("WRONG CHOICE !");	run(); 
 	}
+}
+
+int main()
+{	
+	displayMenu();
+	run();
 	printf("\n\n Thank you for using the our Billing System! \n\n");
-	getch();
+	getch();	
+	return 0;	
 }

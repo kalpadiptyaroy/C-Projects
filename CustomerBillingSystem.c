@@ -2,6 +2,9 @@
 #include<conio.h>
 #include<string.h>
 #include<stdlib.h>
+#include<windows.h>
+#include<dir.h>
+#include<dos.h>
 #define RECORD "CustomerRecord.dat"
 
 typedef struct
@@ -12,6 +15,20 @@ typedef struct
 	char address[32];
 	float balance;
 } Customer;
+
+void setColor(int ForgC)
+{
+ 	WORD wColor;
+
+  	HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+  	CONSOLE_SCREEN_BUFFER_INFO csbi;                       //We use csbi for the wAttributes word.
+ 	if(GetConsoleScreenBufferInfo(hStdOut, &csbi))
+ 	{
+    	wColor = (csbi.wAttributes & 0xF0) + (ForgC & 0x0F);	//Mask out all but the background attribute, and add in the forgournd color
+    	SetConsoleTextAttribute(hStdOut, wColor);
+ 	}
+ 	return;
+}
 
 void input(Customer *x)
 {
@@ -175,18 +192,18 @@ float payBill(Customer *x)
 
 void output(Customer x, float amt)
 {
-	printf("\n\tCustomer Name : %s\t", x.name);
-	printf("\n\tCustomer No. : %d\t", x.customerNo);
-	printf("\n\tCustomer Phone No. : %lld\t", x.phoneNo);
+	printf("\n\tCustomer Name :");   	setColor(14);   printf(" %s\t", x.name);  			setColor(15);
+	printf("\n\tCustomer No. :");    	setColor(11);	printf(" %d\t", x.customerNo);  	setColor(15);
+	printf("\n\tCustomer Phone No. : %lld\t", x.phoneNo);	
 	printf("\n\tCustomer Address : %s\t", x.address);
-	printf("\n\tBill Amount : %f\t", amt - x.balance);
-	printf("\n\tAmount Paid : %f\t",amt);
-	printf("\n\tRemaining Balance: %f\t", x.balance);
+	printf("\n\tBill Amount :"); 		setColor(10);	printf(" %f\t", amt - x.balance);	setColor(15);
+	printf("\n\tAmount Paid :"); 		setColor(10);	printf(" %f\t",amt);				setColor(15);
+	printf("\n\tRemaining Balance:"); 	setColor(12);	printf(" %f\t", x.balance);			setColor(15);
 }
 
 void displayMenu()
 {
-	system("cls");				//clrscr() is deprecated. So we are using cls command with the system() function to clear screen initially.
+	system("cls");	//clrscr() is deprecated. So we are using cls command with the system() function to clear screen initially.
 	printf("\n\t\t\tWELCOME TO THE CUSTOMER BILLING SYSTEM\n\n");
 	printf("\n\t\tEnter 1 to Add Account");
 	printf("\n\t\tEnter 2 to Search Account");

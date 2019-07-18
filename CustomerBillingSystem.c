@@ -5,13 +5,14 @@
 #include<windows.h>
 #include<dir.h>
 #include<dos.h>
+#include<math.h>
 #define RECORD "CustomerRecord.dat"
 
 typedef struct
 {
 	int customerNo;
 	long long int phoneNo;
-	char name[20];
+	char name[28];
 	char address[32];
 	float balance;
 } Customer;
@@ -42,6 +43,17 @@ void input(Customer *x)
 	printf("\tEnter the Amount to be Paid : ");
 	scanf("%f", &x->balance);
 	x->balance = -x->balance;
+}
+
+void output(Customer x, float amt)
+{
+	printf("\n\tCustomer Name :");   	setColor(14);   printf(" %s\t", x.name);  			setColor(15);
+	printf("\n\tCustomer No. :");    	setColor(11);	printf(" %d\t", x.customerNo);  	setColor(15);
+	printf("\n\tCustomer Phone No. : %lld\t", x.phoneNo);	
+	printf("\n\tCustomer Address : %s\t", x.address);
+	printf("\n\tBill Amount :"); 		setColor(10);	printf(" %.2f\t", amt - x.balance);	setColor(15);
+	printf("\n\tAmount Paid :"); 		setColor(10);	printf(" %.2f\t",amt);				setColor(15);
+	printf("\n\tRemaining Balance:"); 	setColor(12);	printf(" %.2f\t", x.balance);		setColor(15);
 }
 
 Customer setCustomerNo()
@@ -143,11 +155,53 @@ Customer searchByNo(int n)
 	return x;
 }
 
+Customer match(Customer x)
+{
+	FILE *fp; Customer y; char choice;
+	fflush(stdin);
+	printf("\n\n\tDo you want to EDIT Customer Details ?  (Y/N) : ");
+	scanf("%c", &choice);
+	
+	if(choice == 'Y' || choice == 'y')
+	{
+		fflush(stdin);
+		printf("\n\t Enter Name : ");
+		gets(x.name);
+		printf("\n\t Enter Address : ");
+		gets(x.address);
+		printf("\n\t Enter Phone No. : ");
+		scanf("%lld", &x.phoneNo);
+		
+		fp = fopen(RECORD, "rb+");
+		
+		while(fread(&y, sizeof(Customer), 1, fp))
+		{
+			if(x.customerNo == y.customerNo)
+			{
+				if(strcmp(x.address, y.address) != 0 && strlen(x.address))
+					strcpy(y.address, x.address);
+				if(strcmp(x.name, y.name) != 0 && strlen(x.name))
+					strcpy(y.name, x.name);
+				if((x.phoneNo != y.phoneNo) && ((int)log10(x.phoneNo) + 1 == 10))
+					y.phoneNo = x.phoneNo;
+				
+				fseek(fp, -sizeof(Customer), SEEK_CUR);
+				fwrite(&y, sizeof(Customer), 1, fp);
+				break;
+			}
+		}
+		fclose(fp);
+	}
+	else
+		y = x;
+	return y;
+}
+
 Customer search(Customer x)
 {
 	int choice; 
 	
-	printf("\n\tEnter 1 to Search By Name Or Enter 2 to Search by Customer No.");
+	printf("\n\tEnter 1 to Search By Name \n\tEnter 2 to Search by Customer No.");
 	printf("\n\n\tEnter Choice : ");
 	scanf("%d", &choice);
 	if(choice == 1)
@@ -177,7 +231,7 @@ float payBill(Customer *x)
 	printf("\tDo you want to pay the bill? (Y/N) : ");
 	scanf("%c", &c);
 	
-	if(c == 'Y')
+	if(c == 'Y' || c == 'y')
 	{
 		printf("\tEnter Amount Paid : ");
 		scanf("%f", &amt);
@@ -190,20 +244,10 @@ float payBill(Customer *x)
 	return amt;
 }
 
-void output(Customer x, float amt)
-{
-	printf("\n\tCustomer Name :");   	setColor(14);   printf(" %s\t", x.name);  			setColor(15);
-	printf("\n\tCustomer No. :");    	setColor(11);	printf(" %d\t", x.customerNo);  	setColor(15);
-	printf("\n\tCustomer Phone No. : %lld\t", x.phoneNo);	
-	printf("\n\tCustomer Address : %s\t", x.address);
-	printf("\n\tBill Amount :"); 		setColor(10);	printf(" %f\t", amt - x.balance);	setColor(15);
-	printf("\n\tAmount Paid :"); 		setColor(10);	printf(" %f\t",amt);				setColor(15);
-	printf("\n\tRemaining Balance:"); 	setColor(12);	printf(" %f\t", x.balance);			setColor(15);
-}
-
 void displayMenu()
 {
 	system("cls");	//clrscr() is deprecated. So we are using cls command with the system() function to clear screen initially.
+	printf("\n\t\t\tCOPYRIGHT 2019 : DEVELOPED BY KALPADIPTYA ROY\n");
 	printf("\n\t\t\tWELCOME TO THE CUSTOMER BILLING SYSTEM\n\n");
 	printf("\n\t\tEnter 1 to Add Account");
 	printf("\n\t\tEnter 2 to Search Account");
@@ -234,6 +278,7 @@ void run()
 				{
 					amt = payBill(&x);
 					update(x);
+					x = match(x);
 					output(x, amt);
 				}
 				run();
@@ -249,7 +294,7 @@ int main()
 {	
 	displayMenu();
 	run();
-	printf("\n\n Thank you for using the our Billing System! \n\n");
+	printf("\n\n \tThank you for using the our Billing System! \n\n");
 	getch();	
 	return 0;	
 }

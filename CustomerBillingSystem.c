@@ -13,7 +13,7 @@ typedef struct
 	int customerNo;
 	long long int phoneNo;
 	char name[28];
-	char address[32];
+	char address[36];
 	float balance;
 } Customer;
 
@@ -169,7 +169,7 @@ Customer match(Customer x)
 		gets(x.name);
 		printf("\n\t Enter Address : ");
 		gets(x.address);
-		printf("\n\t Enter Phone No. : ");
+		printf("\n\t Enter Phone No. (Enter Zero '0' in Case of No Change): ");
 		scanf("%lld", &x.phoneNo);
 		
 		fp = fopen(RECORD, "rb+");
@@ -182,7 +182,7 @@ Customer match(Customer x)
 					strcpy(y.address, x.address);
 				if(strcmp(x.name, y.name) != 0 && strlen(x.name))
 					strcpy(y.name, x.name);
-				if((x.phoneNo != y.phoneNo) && ((int)log10(x.phoneNo) + 1 == 10))
+				if((x.phoneNo != y.phoneNo) && x.phoneNo > 999999999)
 					y.phoneNo = x.phoneNo;
 				
 				fseek(fp, -sizeof(Customer), SEEK_CUR);
@@ -247,7 +247,7 @@ float payBill(Customer *x)
 void displayMenu()
 {
 	system("cls");	//clrscr() is deprecated. So we are using cls command with the system() function to clear screen initially.
-	printf("\n\t\t\tCOPYRIGHT 2019 : DEVELOPED BY KALPADIPTYA ROY\n");
+	printf("\n\t\tCOPYRIGHT 2019 : DEVELOPED BY KALPADIPTYA ROY\n");
 	printf("\n\t\t\tWELCOME TO THE CUSTOMER BILLING SYSTEM\n\n");
 	printf("\n\t\tEnter 1 to Add Account");
 	printf("\n\t\tEnter 2 to Search Account");

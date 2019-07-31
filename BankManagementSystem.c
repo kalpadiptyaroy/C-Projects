@@ -2,6 +2,9 @@
 #include<conio.h>
 #include<string.h>
 #include<stdlib.h>
+#include<windows.h>
+#include<dos.h>
+#include<dir.h>
 #define ACCOUNTS "AccountRecord.dat"
 #define TRANSC "Transactions.dat"
 #define BR_CODE 1822
@@ -11,6 +14,20 @@ typedef struct {short int day; short int month; short int year;} Date;
 typedef struct {char street[20]; char city[16]; char state[20]; int pincode; short int houseNo;} Address;
 typedef struct {char name[32]; char citizenshipNo[20]; Address addr; Date dob; Deposit amount; char type; short int fxd_yrs; int acc_no; long long int phoneNo;} Customer;
 typedef struct {int from_acc; int to_acc; float amt; Date date;} Transaction;
+
+void setColor(int ForgC)
+{
+ 	WORD wColor;
+
+  	HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+  	CONSOLE_SCREEN_BUFFER_INFO csbi;                       //We use csbi for the wAttributes word.
+ 	if(GetConsoleScreenBufferInfo(hStdOut, &csbi))
+ 	{
+    	wColor = (csbi.wAttributes & 0xF0) + (ForgC & 0x0F);	//Mask out all but the background attribute, and add in the forgournd color
+    	SetConsoleTextAttribute(hStdOut, wColor);
+ 	}
+ 	return;
+}
 
 void getAddress(Address *a)
 {
@@ -51,12 +68,13 @@ void viewlist(Customer x)
 {	
 	if(strlen(x.name) > 15)
 	{
-		printf("%d\t", x.acc_no);	printf("%s\t", x.name);	printf("%lld\t", x.phoneNo);
+		setColor(12);	printf("%d\t", x.acc_no);	setColor(7);	printf("%s\t", x.name);		setColor(14);	printf("%lld\t", x.phoneNo);
 	}
 	else
 	{
-		printf("%d\t", x.acc_no);	printf("%s\t\t", x.name);	printf("%lld\t", x.phoneNo);
+		setColor(12);	printf("%d\t", x.acc_no);	setColor(7);	printf("%s\t\t", x.name);	setColor(14);	printf("%lld\t", x.phoneNo);
 	}
+	setColor(15);
 	printf("%d, %s, %s - %d, %s\n", x.addr.houseNo, x.addr.street, x.addr.city, x.addr.pincode, x.addr.state);
 	printf("\n");
 }
@@ -67,7 +85,7 @@ void view()
 	while(fread(&x, sizeof(Customer), 1, fp))
 		viewlist(x);
 }
-void see(Customer x)	/*Done*/
+void see(Customer x)	
 {
 	printf("\n\tName : %s", x.name);
 	printf("\n\tA/C No. : %d", x.acc_no);
@@ -90,7 +108,7 @@ void see(Customer x)	/*Done*/
 							break;
 	}
 }
-void new_acc(Customer *x) 	/*Done*/
+void new_acc(Customer *x) 	
 {
 	printf("\n\tEnter the Name : ");							fflush(stdin);  gets(x->name);
 	printf("\n\tEnter Address: ");								fflush(stdin);  getAddress(&x->addr);
@@ -100,14 +118,14 @@ void new_acc(Customer *x) 	/*Done*/
 	printf("\n\tEnter type of Deposit. \n\t 'S' -> Savings 'C' -> Current 'F' -> Fixed \n");	
 	x->type = getDeposit(&x->amount, &(x->fxd_yrs));	
 }
-void storeAccount(Customer x)	/*Done*/
+void storeAccount(Customer x)	
 {
 	FILE *fp; 
 	fp = fopen(ACCOUNTS, "ab");
 	fwrite(&x, sizeof(Customer), 1, fp);
 	fclose(fp);
 }
-Customer setAccNo()					/*Done*/
+Customer setAccNo()				
 {
 	FILE *fp;	Customer x; int totalrecords;
 	fp = fopen(ACCOUNTS, "rb+");	
@@ -124,7 +142,7 @@ Customer setAccNo()					/*Done*/
 	fclose(fp);
 	return x;
 }
-Customer search()		/*Done*/
+Customer search()		
 {
 	FILE *fp; int c = 0; Customer x; char name[32]; long long int phNo;
 	fp = fopen(ACCOUNTS, "rb");	
@@ -149,15 +167,15 @@ void recordTransaction(Transaction t)
 void viewTransactionList()
 {
 	FILE *fp = fopen(TRANSC, "rb"); Transaction t;
-	printf("\nDate\t\tPayer's A/c No.\tPayee's A/c No.\tAmount");
+	printf("\n\tDate\t\tPayer's A/c No.\tPayee's A/c No.\tAmount");
 	while(fread(&t, sizeof(Transaction), 1, fp))
 	{
-		printf("\n%d/%d/%d\t", t.date.day, t.date.month, t.date.year);
-		printf("%d\t\t%d\t\t%f\n", t.from_acc, t.to_acc, t.amt);
+		setColor(14);	printf("\n\t%d/%d/%d\t", t.date.day, t.date.month, t.date.year);
+		setColor(12);	printf("%d\t\t", t.from_acc);  setColor(10);	printf("%d\t\t", t.to_acc); setColor(15);	printf("%f\n", t.amt);
 	}
 	fclose(fp);
 }
-void transact()	/*Done*/
+void transact()	
 {
 	Customer payer, recipient;	float amount, payerBalance, recpBalance; 	Transaction t;	Date d;	
 	printf("\n\n\t\tPlease Enter Payer's Details : \n\n ");		payer = search();

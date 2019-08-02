@@ -1,6 +1,6 @@
-#include<stdio.h>
-#include<conio.h>
-#include<string.h>
+#include<stdio.h>									//Bright Red - 12
+#include<conio.h>									//Bright Yellow - 14
+#include<string.h>									//Bright White - 15
 #include<stdlib.h>
 #include<windows.h>
 #include<dos.h>
@@ -151,10 +151,10 @@ Customer search()
 	while(fread(&x, sizeof(Customer), 1, fp))	
 		if(strcmp(x.name, name) == 0 && x.phoneNo == phNo)
 		{
-			printf("\n\t\tAccount Found");
+			setColor(2);	printf("\n\t\tAccount Found");	setColor(15);
 			return x;
 		}	
-	x.acc_no = -1; printf("\n\t\tAccount Not Found !");
+	x.acc_no = -1; setColor(4);	printf("\n\t\tAccount Not Found !");	setColor(15);
 	return x;
 }
 void recordTransaction(Transaction t)
@@ -205,13 +205,17 @@ void transact()
 			
 			t.amt = amount; 	t.date = d; 	t.from_acc = payer.acc_no;	t.to_acc = recipient.acc_no;
 			recordTransaction(t);
-			printf("\t\t\t\tTransaction Successfull.");
+			setColor(2);			printf("\t\t\t\tTransaction Successfull.");		setColor(15);
 		}
 		else
-			printf("\n\n\t\tInsuffiecient Balance");		
+		{
+			setColor(4);	printf("\n\n\t\tInsuffiecient Balance");	setColor(15);
+		}		
 	}
 	else
-		printf("\n\n\t\tInvalid Transaction");	
+	{	
+		setColor(4);	printf("\n\n\t\tInvalid Transaction");	setColor(15);
+	}
 }
 void erase(Customer x)
 {

@@ -290,9 +290,9 @@ void run()
 				}
 				run();
 				break;
-		case 3: transact(); run(); break;
+		case 3: view(); transact(); run(); break;
 		case 4: view(); run();	break;
-		case 5: viewTransactionList(); break;
+		case 5: viewTransactionList(); run(); break;
 		case 6: break;
 		default: printf("\n Wrong choice! Try Again"); run();
 	}	

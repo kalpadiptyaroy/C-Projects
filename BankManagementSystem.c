@@ -277,13 +277,16 @@ void run()
 				break;
 		
 		case 2: x = search();	
-				printf("\n\tEnter 'D' to Erase account. \n\tEnter 'E' to Edit Account. \n\tEnter 'S' to See Account. \n\t Enter Choice: ");
-				fflush(stdin);	scanf("%c", &c);
-				switch(c)
+				if(x.acc_no != -1)
 				{
-					case 'd': case 'D': erase(x); break;
-					case 'e': case 'E': edit(x); break;
-					case 's': case 'S': see(x);	break;
+					printf("\n\tEnter 'D' to Erase account. \n\tEnter 'E' to Edit Account. \n\tEnter 'S' to See Account. \n\t Enter Choice: ");
+					fflush(stdin);	scanf("%c", &c);
+					switch(c)
+					{
+						case 'd': case 'D': erase(x); break;
+						case 'e': case 'E': edit(x); break;
+						case 's': case 'S': see(x);	break;
+					}
 				}
 				run();
 				break;
